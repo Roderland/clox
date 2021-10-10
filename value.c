@@ -2,8 +2,6 @@
 // Created by roderland on 2021/10/10.
 //
 
-#include <stdio.h>
-
 #include "value.h"
 #include "memory.h"
 

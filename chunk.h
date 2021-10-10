@@ -10,7 +10,12 @@
 
 typedef enum {
     OP_RETURN,
-    OP_CONSTANT
+    OP_CONSTANT,
+    OP_NEGATE,
+    OP_ADD,
+    OP_SUBTRACT,
+    OP_MULTIPLY,
+    OP_DIVIDE,
 } OpCode;
 
 typedef struct {
@@ -27,6 +32,6 @@ void writeChunk(Chunk *chunk, uint8_t byte, int line);
 
 void freeChunk(Chunk *chunk);
 
-int addConstants(Chunk *chunk, Value value);
+int addConstant(Chunk *chunk, Value value);
 
 #endif //CLOX_CHUNK_H
