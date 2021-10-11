@@ -1,5 +1,7 @@
+SRC = main.c chunk.c memory.c debug.c value.c vm.c compiler.c scanner.c
+
 all:
-	cc -std=c99 -Wall main.c chunk.c memory.c debug.c value.c vm.c -ledit -lm -o main
+	cc -std=c99 -Wall -Wunused-function $(SRC) -ledit -lm -o clox
 clean:
-	rm main
+	rm clox
 
