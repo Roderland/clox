@@ -47,10 +47,24 @@ ObjString* copyString(const char* chars, int length) {
     return allocateString(heapChars, length, hash);
 }
 
+static void printFunction(ObjFunction* func) {
+    if (func->name == NULL) {
+        printf("<script>");
+        return;
+    }
+    printf("<fn %s>", func->name->chars);
+}
+
 void printObject(Value value) {
     switch (OBJ_TYPE(value)) {
         case OBJ_STRING:
             printf("%s", AS_CSTRING(value));
+            break;
+        case OBJ_FUNCTION:
+            printFunction(AS_FUNCTION(value));
+            break;
+        case OBJ_NATIVE:
+            printf("<native fn>");
             break;
     }
 }
@@ -63,5 +77,19 @@ ObjString* takeString(char* chars, int length) {
         return interned;
     }
     return allocateString(chars, length, hash);
+}
+
+ObjFunction* newFunction() {
+    ObjFunction* func = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);
+    func->arity = 0;
+    func->name = NULL;
+    initChunk(&func->chunk);
+    return func;
+}
+
+ObjNative* newNative(NativeFn func) {
+    ObjNative* native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);
+    native->func = func;
+    return native;
 }
 
