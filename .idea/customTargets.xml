@@ -2,7 +2,7 @@
 <project version="4">
   <component name="CLionExternalBuildManager">
     <target id="8db1736e-1845-47b3-8eeb-43238264a11b" name="clox" defaultType="MAKE">
-      <configuration id="bf86b4db-dbae-4b23-9ee8-43b835b7e64a" name="clox">
+      <configuration id="bf86b4db-dbae-4b23-9ee8-43b835b7e64a" name="clox" toolchainName="Default">
         <build type="MAKE">
           <make targetName="all" />
         </build>
