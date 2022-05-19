@@ -1,4 +1,4 @@
-CHAPTER = chapter-12
+CHAPTER = chapter-13
 
 clox:
 	cc -std=c99 -g -Wall -Wunused-function $(CHAPTER)/src/* -lm -o clox
