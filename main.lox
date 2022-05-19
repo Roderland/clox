@@ -1,8 +1,6 @@
 #!./clox
 
-{
-  var a = "outer";
-  {
-    var a = a;
-  }
+var n = 10;
+for (var i = 0; i < n; i = i + 1) {
+    print i;
 }
