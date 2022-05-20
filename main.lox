@@ -1,41 +1,8 @@
 #!./clox
 
-fun do(x) {
-    fun go() {
-        print x;
-        do(x + 1);
-    }
-    if (x != 2) {
-        go();
-    }
-}
+class Pair {}
 
-do(0);
-
-// fun makeClosure() {
-//   var local = "local";
-//   fun closure() {
-//     print local;
-//   }
-//   return closure;
-// }
-//
-// var closure = makeClosure();
-// closure();
-
-// var globalSet;
-// var globalGet;
-//
-// fun main() {
-//   var a = "initial";
-//
-//   fun set() { a = "updated"; }
-//   fun get() { print a; }
-//
-//   globalSet = set;
-//   globalGet = get;
-// }
-//
-// main();
-// globalSet();
-// globalGet();
+var pair = Pair();
+pair.first = 1;
+pair.second = 2;
+print pair.first + pair.second; // 3.
