@@ -1,14 +1,22 @@
 #!./clox
 
-class Oops {
-  init() {
-    fun f() {
-      print "not a method";
-    }
+class Doughnut {
+  cook() {
+    print "Dunk in the fryer.";
+    this.finish("sprinkles");
+  }
 
-    this.field = f;
+  finish(ingredient) {
+    print "Finish with " + ingredient;
   }
 }
 
-var oops = Oops();
-oops.field();
+class Cruller < Doughnut {
+  finish(ingredient) {
+    // No sprinkles, always icing.
+    super.finish("icing");
+  }
+}
+
+var cruller = Cruller();
+cruller.finish("abc");
