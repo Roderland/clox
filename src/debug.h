@@ -1,14 +1,13 @@
 //
-// Created by roderland on 2021/10/10.
+// Created by roderland on 2022/5/16.
 //
 
-#ifndef CLOX_DEBUG_H
-#define CLOX_DEBUG_H
+#ifndef clox_debug_h
+#define clox_debug_h
 
 #include "chunk.h"
 
 void disassembleChunk(Chunk* chunk, const char* name);
-
 int disassembleInstruction(Chunk* chunk, int offset);
 
-#endif //CLOX_DEBUG_H
+#endif

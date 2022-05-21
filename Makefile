@@ -1,7 +1,6 @@
-SRC = main.c chunk.c memory.c debug.c value.c vm.c compiler.c scanner.c object.c table.c
+clox:
+	cc -std=c99 -g -Wall -Wunused-function src/* -lm -o clox
+	chmod +x main.lox && ./main.lox
 
-all:
-	cc -std=c99 -g -Wall -Wunused-function $(SRC) -lm -o clox
 clean:
 	rm clox
-

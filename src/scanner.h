@@ -1,9 +1,9 @@
 //
-// Created by roderland on 2021/10/11.
+// Created by roderland on 2022/5/16.
 //
 
-#ifndef CLOX_SCANNER_H
-#define CLOX_SCANNER_H
+#ifndef clox_scanner_h
+#define clox_scanner_h
 
 typedef enum {
     // Single-character tokens.
@@ -35,7 +35,6 @@ typedef struct {
 } Token;
 
 void initScanner(const char* source);
-
 Token scanToken();
 
-#endif //CLOX_SCANNER_H
+#endif
