@@ -485,15 +485,51 @@ static void number(bool canAssign) {
 
 // elem of list
 static void listE(bool canAssign) {
-    expression();
-    consume(TOKEN_RIGHT_RBRACK, "Expect ']' after a list index range.");
+    if (match(TOKEN_COLON)) {
+        emitConstant(NUMBER_VAL(0));
+        if (match(TOKEN_RIGHT_RBRACK)) {
+            // list[:]
+            emitConstant(NUMBER_VAL(-1));
+        } else {
+            expression(); // end
 
-    if (match(TOKEN_EQUAL)) {
-        expression();
-        emitByte(OP_LIST_SET);
+            consume(TOKEN_RIGHT_RBRACK, "Expect ']' after a list index range.");
+        }
     } else {
-        emitByte(OP_LIST_GET);
+        if (match(TOKEN_RIGHT_RBRACK)) {
+            // list[] means size of list
+            emitByte(OP_LIST_SIZE);
+            return;
+        }
+
+        expression(); // start
+
+        if (match(TOKEN_COLON)) {
+            if (match(TOKEN_RIGHT_RBRACK)) {
+                // list[start:]
+                emitConstant(NUMBER_VAL(-1));
+            } else {
+                expression(); // end
+                // list[start:end]
+                consume(TOKEN_RIGHT_RBRACK, "Expect ']' after a list index range.");
+            }
+        } else {
+            // list[start] ...
+            consume(TOKEN_RIGHT_RBRACK, "Expect ']' after a list index range.");
+
+            if (match(TOKEN_EQUAL)) {
+                // list[start] = ...
+                expression();
+                emitByte(OP_LIST_SET);
+            } else {
+                // list[start]
+                emitByte(OP_LIST_GET);
+            }
+            return;
+        }
     }
+
+    emitByte(OP_LIST_RANGE);
 }
 
 static void or_(bool canAssign) {

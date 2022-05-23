@@ -201,6 +201,7 @@ Token scanToken() {
         case '[': return makeToken(TOKEN_LEFT_RBRACK);
         case ']': return makeToken(TOKEN_RIGHT_RBRACK);
         case ';': return makeToken(TOKEN_SEMICOLON);
+        case ':': return makeToken(TOKEN_COLON);
         case ',': return makeToken(TOKEN_COMMA);
         case '.': return makeToken(TOKEN_DOT);
         case '-': return makeToken(TOKEN_MINUS);
