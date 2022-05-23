@@ -152,9 +152,10 @@ static void printFunction(ObjFunction* function) {
 
 void printObject(Value value) {
     switch (OBJ_TYPE(value)) {
-        case OBJ_LIST:
-            printf("list[]");
+        case OBJ_LIST: {
+            printf("[...]");
             break;
+        }
         case OBJ_BOUND_METHOD:
             printFunction(AS_BOUND_METHOD(value)->method->function);
             break;

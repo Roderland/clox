@@ -551,6 +551,21 @@ static InterpretResult run() {
                 push(list->array.values[index]);
                 break;
             }
+            case OP_LIST_SET: {
+                Value value = pop();
+                int index = (int)AS_NUMBER(pop());
+                if (!IS_LIST(peek(0))) {
+                    runtimeError("Variable must be a list.");
+                }
+                ObjList* list = AS_LIST(peek(0));
+                if (index < 0 || index >= list->array.count) {
+                    runtimeError("List index is out of range.");
+                }
+                list->array.values[index] = value;
+                pop();
+                push(list->array.values[index]);
+                break;
+            }
         }
     }
 

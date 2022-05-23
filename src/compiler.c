@@ -487,7 +487,13 @@ static void number(bool canAssign) {
 static void listE(bool canAssign) {
     expression();
     consume(TOKEN_RIGHT_RBRACK, "Expect ']' after a list index range.");
-    emitByte(OP_LIST_GET);
+
+    if (match(TOKEN_EQUAL)) {
+        expression();
+        emitByte(OP_LIST_SET);
+    } else {
+        emitByte(OP_LIST_GET);
+    }
 }
 
 static void or_(bool canAssign) {
