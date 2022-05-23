@@ -29,6 +29,12 @@ static Obj* allocateObject(size_t size, ObjType type) {
     return object;
 }
 
+ObjList* newList(int elemsCount) {
+    ObjList* list = ALLOCATE_OBJ(ObjList, OBJ_LIST);
+    initValueArrayWithCapacity(&list->array, elemsCount + 1);
+    return list;
+}
+
 ObjBoundMethod* newBoundMethod(Value receiver,
                                ObjClosure* method) {
     ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod,
@@ -146,6 +152,9 @@ static void printFunction(ObjFunction* function) {
 
 void printObject(Value value) {
     switch (OBJ_TYPE(value)) {
+        case OBJ_LIST:
+            printf("list[]");
+            break;
         case OBJ_BOUND_METHOD:
             printFunction(AS_BOUND_METHOD(value)->method->function);
             break;

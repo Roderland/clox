@@ -15,6 +15,12 @@ void initValueArray(ValueArray* array) {
     array->count = 0;
 }
 
+void initValueArrayWithCapacity(ValueArray* array, int capacity) {
+    array->count = 0;
+    array->capacity = capacity;
+    array->values = GROW_ARRAY(Value, NULL, 0, array->capacity);
+}
+
 void writeValueArray(ValueArray* array, Value value) {
     if (array->capacity < array->count + 1) {
         int oldCapacity = array->capacity;

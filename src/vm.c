@@ -528,6 +528,29 @@ static InterpretResult run() {
             case OP_METHOD:
                 defineMethod(READ_STRING());
                 break;
+            case OP_LIST: {
+                int elemsCount = READ_BYTE();
+                ObjList* list = newList(elemsCount);
+                for (int i = elemsCount - 1; i >= 0; i--) {
+                    writeValueArray(&list->array, peek(i));
+                }
+                while (elemsCount -- > 0) pop();
+                push(OBJ_VAL(list));
+                break;
+            }
+            case OP_LIST_GET: {
+                int index = (int)AS_NUMBER(pop());
+                if (!IS_LIST(peek(0))) {
+                    runtimeError("Variable must be a list.");
+                }
+                ObjList* list = AS_LIST(peek(0));
+                if (index < 0 || index >= list->array.count) {
+                    runtimeError("List index is out of range.");
+                }
+                pop();
+                push(list->array.values[index]);
+                break;
+            }
         }
     }
 
