@@ -62,6 +62,11 @@ typedef enum {
     TYPE_SCRIPT
 } FunctionType;
 
+typedef struct JumpNode {
+    struct JumpNode* next;
+    int jumpPatch;
+} JumpNode;
+
 typedef struct Compiler {
     struct Compiler* enclosing;
     ObjFunction* function;
@@ -71,6 +76,10 @@ typedef struct Compiler {
     int localCount;
     Upvalue upvalues[UINT8_COUNT];
     int scopeDepth;
+
+    bool isInLoop;
+    JumpNode* breakNodes;
+    int loopStart;
 } Compiler;
 
 typedef struct ClassCompiler {
@@ -209,6 +218,9 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
     compiler->type = type;
     compiler->localCount = 0;
     compiler->scopeDepth = 0;
+    compiler->isInLoop = false;
+    compiler->breakNodes = NULL;
+    compiler->loopStart = 0;
     compiler->function = newFunction();
     current = compiler;
     if (type != TYPE_SCRIPT) {
@@ -759,51 +771,6 @@ static void expressionStatement() {
     emitByte(OP_POP);
 }
 
-static void forStatement() {
-    beginScope();
-    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
-    if (match(TOKEN_SEMICOLON)) {
-        // No initializer.
-    } else if (match(TOKEN_VAR)) {
-        varDeclaration();
-    } else {
-        expressionStatement();
-    }
-
-    int loopStart = currentChunk()->count;
-    int exitJump = -1;
-    if (!match(TOKEN_SEMICOLON)) {
-        expression();
-        consume(TOKEN_SEMICOLON, "Expect ';' after loop condition.");
-
-        // Jump out of the loop if the condition is false.
-        exitJump = emitJump(OP_JUMP_IF_FALSE);
-        emitByte(OP_POP); // Condition.
-    }
-
-    if (!match(TOKEN_RIGHT_PAREN)) {
-        int bodyJump = emitJump(OP_JUMP);
-        int incrementStart = currentChunk()->count;
-        expression();
-        emitByte(OP_POP);
-        consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
-
-        emitLoop(loopStart);
-        loopStart = incrementStart;
-        patchJump(bodyJump);
-    }
-
-    statement();
-    emitLoop(loopStart);
-
-    if (exitJump != -1) {
-        patchJump(exitJump);
-        emitByte(OP_POP); // Condition.
-    }
-
-    endScope();
-}
-
 static void ifStatement() {
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
     expression();
@@ -846,19 +813,101 @@ static void returnStatement() {
     }
 }
 
+static void breakStatement() {
+    if (!current->isInLoop) error("Break must in a loop.");
+
+    JumpNode* node = (JumpNode*)reallocate(NULL, 0, sizeof(JumpNode));
+    node->jumpPatch = emitJump(OP_JUMP);
+    node->next = current->breakNodes;
+    current->breakNodes = node;
+
+    consume(TOKEN_SEMICOLON, "Expect ';' after 'break'");
+}
+
+static void continueStatement() {
+    if (!current->isInLoop) error("Continue must in a loop.");
+
+    emitLoop(current->loopStart);
+
+    consume(TOKEN_SEMICOLON, "Expect ';' after 'continue'");
+}
+
+static void patchBreak() {
+    while (current->breakNodes != NULL) {
+        patchJump(current->breakNodes->jumpPatch);
+        current->breakNodes = current->breakNodes->next;
+    }
+}
+
 static void whileStatement() {
     int loopStart = currentChunk()->count;
+    current->loopStart = loopStart;
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
 
     int exitJump = emitJump(OP_JUMP_IF_FALSE);
     emitByte(OP_POP);
+    current->isInLoop = true;
     statement();
     emitLoop(loopStart);
 
     patchJump(exitJump);
     emitByte(OP_POP);
+
+    // patch break jump
+    patchBreak();
+}
+
+static void forStatement() {
+    beginScope();
+    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
+    if (match(TOKEN_SEMICOLON)) {
+        // No initializer.
+    } else if (match(TOKEN_VAR)) {
+        varDeclaration();
+    } else {
+        expressionStatement();
+    }
+
+    int loopStart = currentChunk()->count;
+    current->loopStart = loopStart;
+    int exitJump = -1;
+    if (!match(TOKEN_SEMICOLON)) {
+        expression();
+        consume(TOKEN_SEMICOLON, "Expect ';' after loop condition.");
+
+        // Jump out of the loop if the condition is false.
+        exitJump = emitJump(OP_JUMP_IF_FALSE);
+        emitByte(OP_POP); // Condition.
+    }
+
+    if (!match(TOKEN_RIGHT_PAREN)) {
+        int bodyJump = emitJump(OP_JUMP);
+        int incrementStart = currentChunk()->count;
+        expression();
+        emitByte(OP_POP);
+        consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        emitLoop(loopStart);
+        loopStart = incrementStart;
+        current->loopStart = loopStart;
+        patchJump(bodyJump);
+    }
+
+    current->isInLoop = true;
+    statement();
+    emitLoop(loopStart);
+
+    if (exitJump != -1) {
+        patchJump(exitJump);
+        emitByte(OP_POP); // Condition.
+    }
+
+    // patch break jump
+    patchBreak();
+
+    endScope();
 }
 
 static void synchronize() {
@@ -914,6 +963,10 @@ static void statement() {
         beginScope();
         block();
         endScope();
+    } else if (match(TOKEN_BREAK)) {
+        breakStatement();
+    } else if (match(TOKEN_CONTINUE)) {
+        continueStatement();
     } else {
         expressionStatement();
     }
