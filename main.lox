@@ -1,38 +1,32 @@
 #!./clox
 
-// break & continue
-while (true) {
-    for (var i = 0; i < 10; i = i+1) {
-        if (i == 2) continue;
-        if (i == 6) continue;
-        if (i == 8) break;
-        print i;
-    }
-    break;
+// you can declare a list like this:
+var foo = [nil, true, 123, "hello"];
+var bar = [];
+
+// print your list
+print "==> foo: ";
+print foo;
+print "==> bar: ";
+print bar;
+
+// take a list -> [start:end] [start:] [:end] [:]
+// only support -1 as end
+// not support other negative numbers
+bar = foo[1:-1];
+
+// get an element from a list
+foo[0] = bar;
+print "==> foo[0]: ";
+print foo[0];
+print "==> foo[0][1]: ";
+print foo[0][1];
+
+// bar[] return the length of bar
+print "==> bar: ";
+for (var i = 0; i < bar[]; i = i + 1) {
+    print bar[i];
 }
 
-// plus-assign
-var a = 1;
-a += 1;
-print a;
-a -= 1;
-print a;
-a *= 2;
-print a;
-a /= 2;
-print a;
-
-// list
-{
-    var a = [1, "hello", nil, true];
-
-    var b = a[:];
-    print b[0];
-    print b[1];
-    print b[2];
-    print b[3];
-
-    // list size
-    print a[];
-    print b[];
-}
+// todo: delete
+// todo: append
