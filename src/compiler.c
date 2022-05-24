@@ -473,9 +473,75 @@ static void grouping(bool canAssign) {
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
+// list
+static void list_(bool canAssign) {
+    int elemsCount = 0;
+    if (!match(TOKEN_RIGHT_RBRACK)) {
+        for (;;) {
+            expression();
+            elemsCount ++;
+            if (elemsCount >= UINT8_COUNT) {
+                error("elems count is out of max-size of list");
+            }
+            if (match(TOKEN_RIGHT_RBRACK)) break;
+            consume(TOKEN_COMMA, "Expect ',' between two list elems.");
+        }
+    }
+    emitBytes(OP_LIST, (uint8_t)elemsCount);
+}
+
 static void number(bool canAssign) {
     double value = strtod(parser.previous.start, NULL);
     emitConstant(NUMBER_VAL(value));
+}
+
+// elem of list
+static void listE(bool canAssign) {
+    if (match(TOKEN_COLON)) {
+        emitConstant(NUMBER_VAL(0));
+        if (match(TOKEN_RIGHT_RBRACK)) {
+            // list[:]
+            emitConstant(NUMBER_VAL(-1));
+        } else {
+            expression(); // end
+
+            consume(TOKEN_RIGHT_RBRACK, "Expect ']' after a list index range.");
+        }
+    } else {
+        if (match(TOKEN_RIGHT_RBRACK)) {
+            // list[] means size of list
+            emitByte(OP_LIST_SIZE);
+            return;
+        }
+
+        expression(); // start
+
+        if (match(TOKEN_COLON)) {
+            if (match(TOKEN_RIGHT_RBRACK)) {
+                // list[start:]
+                emitConstant(NUMBER_VAL(-1));
+            } else {
+                expression(); // end
+                // list[start:end]
+                consume(TOKEN_RIGHT_RBRACK, "Expect ']' after a list index range.");
+            }
+        } else {
+            // list[start] ...
+            consume(TOKEN_RIGHT_RBRACK, "Expect ']' after a list index range.");
+
+            if (match(TOKEN_EQUAL)) {
+                // list[start] = ...
+                expression();
+                emitByte(OP_LIST_SET);
+            } else {
+                // list[start]
+                emitByte(OP_LIST_GET);
+            }
+            return;
+        }
+    }
+
+    emitByte(OP_LIST_RANGE);
 }
 
 static void or_(bool canAssign) {
@@ -606,6 +672,8 @@ ParseRule rules[] = {
         [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
         [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   PREC_NONE},
         [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   PREC_NONE},
+        [TOKEN_LEFT_RBRACK]   = {list_, listE, PREC_CALL},
+        [TOKEN_RIGHT_RBRACK]  = {NULL,     NULL,   PREC_NONE},
         [TOKEN_COMMA]         = {NULL,     NULL,   PREC_NONE},
         [TOKEN_DOT]           = {NULL,     dot,    PREC_CALL},
         [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},

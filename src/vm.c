@@ -528,6 +528,81 @@ static InterpretResult run() {
             case OP_METHOD:
                 defineMethod(READ_STRING());
                 break;
+            case OP_LIST: {
+                int elemsCount = READ_BYTE();
+                ObjList* list = newList(elemsCount);
+                for (int i = elemsCount - 1; i >= 0; i--) {
+                    writeValueArray(&list->array, peek(i));
+                }
+                while (elemsCount -- > 0) pop();
+                push(OBJ_VAL(list));
+                break;
+            }
+            case OP_LIST_GET: {
+                int index = (int)AS_NUMBER(pop());
+                if (!IS_LIST(peek(0))) {
+                    runtimeError("Variable must be a list.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                ObjList* list = AS_LIST(peek(0));
+                if (index < 0 || index >= list->array.count) {
+                    runtimeError("List index is out of range.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                pop();
+                push(list->array.values[index]);
+                break;
+            }
+            case OP_LIST_RANGE: {
+                int end = (int)AS_NUMBER(pop());
+                int start = (int)AS_NUMBER(pop());
+                if (!IS_LIST(peek(0))) {
+                    runtimeError("Variable must be a list.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                ObjList* list = AS_LIST(peek(0));
+                int length = list->array.count;
+                if (end == -1) end = length;
+                if (start < 0 || end <= 0 || start >= length || end > length) {
+                    runtimeError("List index is out of range.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                ObjList* dstList = newList(end - start);
+                for (int i = start; i < end; i++) {
+                    writeValueArray(&dstList->array, list->array.values[i]);
+                }
+                pop();
+                push(OBJ_VAL(dstList));
+                break;
+            }
+            case OP_LIST_SET: {
+                Value value = pop();
+                int index = (int)AS_NUMBER(pop());
+                if (!IS_LIST(peek(0))) {
+                    runtimeError("Variable must be a list.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                ObjList* list = AS_LIST(peek(0));
+                if (index < 0 || index >= list->array.count) {
+                    runtimeError("List index is out of range.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                list->array.values[index] = value;
+                pop();
+                push(list->array.values[index]);
+                break;
+            }
+            case OP_LIST_SIZE: {
+                if (!IS_LIST(peek(0))) {
+                    runtimeError("Variable must be a list.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                int size = AS_LIST(peek(0))->array.count;
+                pop();
+                push(NUMBER_VAL(size));
+                break;
+            }
+
         }
     }
 
