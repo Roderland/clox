@@ -24,7 +24,7 @@ typedef struct {
 
 typedef enum {
     PREC_NONE,
-    PREC_ASSIGNMENT,  // =
+    PREC_ASSIGNMENT,  // = -= += /= *=
     PREC_OR,          // or
     PREC_AND,         // and
     PREC_EQUALITY,    // == !=
@@ -509,12 +509,39 @@ static void namedVariable(Token name, bool canAssign) {
         setOp = OP_SET_GLOBAL;
     }
 
-    if (canAssign && match(TOKEN_EQUAL)) {
-        expression();
-        emitBytes(setOp, (uint8_t)arg);
-    } else {
-        emitBytes(getOp, (uint8_t)arg);
+    if (canAssign) {
+        if (match(TOKEN_EQUAL)) {
+            expression();
+            emitBytes(setOp, (uint8_t)arg);
+            return;
+        } else if (match(TOKEN_PLUS_EQUAL)) {
+            expression();
+            emitBytes(getOp, (uint8_t)arg);
+            emitByte(OP_ADD);
+            emitBytes(setOp, (uint8_t)arg);
+            return;
+        } else if (match(TOKEN_MINUS_EQUAL)) {
+            emitBytes(getOp, (uint8_t)arg);
+            expression();
+            emitByte(OP_SUBTRACT);
+            emitBytes(setOp, (uint8_t)arg);
+            return;
+        } else if (match(TOKEN_STAR_EQUAL)) {
+            expression();
+            emitBytes(getOp, (uint8_t) arg);
+            emitByte(OP_MULTIPLY);
+            emitBytes(setOp, (uint8_t) arg);
+            return;
+        } else if (match(TOKEN_SLASH_EQUAL)) {
+            expression();
+            emitBytes(getOp, (uint8_t) arg);
+            emitByte(OP_DIVIDE);
+            emitBytes(setOp, (uint8_t) arg);
+            return;
+        }
     }
+
+    emitBytes(getOp, (uint8_t)arg);
 }
 
 static void variable(bool canAssign) {
@@ -589,6 +616,10 @@ ParseRule rules[] = {
         [TOKEN_BANG]          = {unary,    NULL,   PREC_NONE},
         [TOKEN_BANG_EQUAL]    = {NULL,     binary, PREC_EQUALITY},
         [TOKEN_EQUAL]         = {NULL,     NULL,   PREC_NONE},
+        [TOKEN_MINUS_EQUAL]         = {NULL,     NULL,   PREC_NONE},
+        [TOKEN_PLUS_EQUAL]         = {NULL,     NULL,   PREC_NONE},
+        [TOKEN_SLASH_EQUAL]         = {NULL,     NULL,   PREC_NONE},
+        [TOKEN_STAR_EQUAL]         = {NULL,     NULL,   PREC_NONE},
         [TOKEN_EQUAL_EQUAL]   = {NULL,     binary, PREC_EQUALITY},
         [TOKEN_GREATER]       = {NULL,     binary, PREC_COMPARISON},
         [TOKEN_GREATER_EQUAL] = {NULL,     binary, PREC_COMPARISON},
@@ -634,7 +665,8 @@ static void parsePrecedence(Precedence precedence) {
         infixRule(canAssign);
     }
 
-    if (canAssign && match(TOKEN_EQUAL)) {
+    if (canAssign && (match(TOKEN_EQUAL) || match(TOKEN_MINUS_EQUAL) || match(TOKEN_PLUS_EQUAL ||
+                        match(TOKEN_SLASH_EQUAL) || match(TOKEN_STAR_EQUAL)))) {
         error("Invalid assignment target.");
     }
 }
