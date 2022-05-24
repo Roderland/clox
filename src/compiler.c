@@ -733,8 +733,8 @@ static void parsePrecedence(Precedence precedence) {
         infixRule(canAssign);
     }
 
-    if (canAssign && (match(TOKEN_EQUAL) || match(TOKEN_MINUS_EQUAL) || match(TOKEN_PLUS_EQUAL ||
-                        match(TOKEN_SLASH_EQUAL) || match(TOKEN_STAR_EQUAL)))) {
+    if (canAssign && (match(TOKEN_EQUAL) || match(TOKEN_MINUS_EQUAL) || match(TOKEN_PLUS_EQUAL) ||
+                        match(TOKEN_SLASH_EQUAL) || match(TOKEN_STAR_EQUAL))) {
         error("Invalid assignment target.");
     }
 }
