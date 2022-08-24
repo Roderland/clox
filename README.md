@@ -1,6 +1,70 @@
 # Clox
 My implementation of the compiler & bytecode VM for Lox language.
 
+## Try
+```
+#!./clox
+
+class A {
+    init() {
+        this.name = "小刚";
+    }
+    printf() {
+        print this.name;
+    }
+    getPrintf() {
+        return this.printf;
+    }
+    getInnerFun() {
+        fun inner() {
+            print this.age;
+        }
+        return inner;
+    }
+}
+
+class Person < A {
+    init() {
+        this.name = "";
+        this.age = 0;
+        this.friends = [0];
+    }
+    #printf() {
+    #    print this.name;
+    #}
+}
+
+var person = Person();
+person.name = "小红";
+person.age = 17;
+person.printf();
+
+person.getPrintf()();
+person.getInnerFun()();
+
+var f1 = Person();
+f1.name = "👬";
+f1.age = 18;
+
+person.friends[0] = f1;
+
+for (var i = 0; i < person.friends[]; i+=1) {
+    print person.friends[];
+    var p = person.friends[i];
+    p.getPrintf()();
+    p.getInnerFun()();
+}
+```
+```
+小红
+小红
+17
+1
+👬
+18
+```
+
+
 ## New Feature
 #### [Break & Continue](https://github.com/Roderland/clox/tree/feat_break%26continue)
 ```
